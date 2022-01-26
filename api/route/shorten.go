@@ -1,6 +1,10 @@
 package route
 
-import "time"
+import (
+	"time"
+
+	"github.com/gofiber/fiber"
+)
 
 type request struct {
 	URL         string        `json:"url"`
@@ -14,4 +18,9 @@ type response struct {
 	Expiry         time.Duration `json:"expiry"`
 	XRateRemaining int           `json:"rate_limit"`
 	XRateLimitRest time.Duration `json:"rate_limit_rest"`
+}
+
+func ShortenUrl(c *fiber.Ctx) error {
+	body := new(request)
+
 }
