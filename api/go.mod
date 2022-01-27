@@ -2,7 +2,6 @@ module shorten-url-with-redis
 
 go 1.17
 
-require github.com/gofiber/fiber v1.14.6
 
 require (
 	github.com/andybalholm/brotli v1.0.2 // indirect

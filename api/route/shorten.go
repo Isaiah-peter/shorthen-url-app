@@ -3,7 +3,7 @@ package route
 import (
 	"time"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
 type request struct {
@@ -22,5 +22,8 @@ type response struct {
 
 func ShortenUrl(c *fiber.Ctx) error {
 	body := new(request)
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "cannot parse json"})
+	}
 
 }
