@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 )
 
 func setUpRoute(app *fiber.App) {
@@ -16,8 +17,7 @@ func setUpRoute(app *fiber.App) {
 }
 
 func main() {
-	err := godoenv.Load()
-
+	err := godotenv.Load()
 	if err != nil {
 		fmt.Println(err)
 	}
