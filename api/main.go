@@ -1,9 +1,14 @@
 package main
 
 import (
+	"fmt"
+	"log"
+	"os"
 	"shorten-url-with-redis/route"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 )
 
 func setUpRoute(app *fiber.App) {
@@ -12,6 +17,14 @@ func setUpRoute(app *fiber.App) {
 }
 
 func main() {
-	app := fiber.New()
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println(err)
+	}
 
+	app := fiber.New()
+	app.Use(logger.New())
+	setUpRoute(app)
+
+	log.Fatal(app.Listen(os.Getenv("APP_PORT")))
 }
