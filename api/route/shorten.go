@@ -62,5 +62,26 @@ func ShortenUrl(c *fiber.Ctx) error {
 	//enforce  http SSL
 
 	body.URL = helper.EnforceHTTP(body.URL)
+
+	var id string
+
+	r := database.CreateClient(0)
+	defer r.Close()
+
+	val, _ := r.Get(database.Ctx, id).Result()
+	if val != "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "fail this url is in use"})
+	}
+
+	if body.Expiry == 0 {
+		body.Expiry = 24
+	}
+
+	errd := r.Set(database.Ctx, id, body.URL, body.Expiry*3600*time.Second)
+
+	if errd == nil {
+		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "unable to connect to server"})
+	}
+
 	r2.Decr(database.Ctx, c.IP())
 }
