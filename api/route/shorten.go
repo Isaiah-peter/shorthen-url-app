@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/internal/uuid"
 )
 
 type request struct {
@@ -20,11 +21,11 @@ type request struct {
 }
 
 type response struct {
-	URL            string        `json:"url"`
-	CustomShort    string        `json:"short"`
-	Expiry         time.Duration `json:"expiry"`
-	XRateRemaining int           `json:"rate_limit"`
-	XRateLimitRest time.Duration `json:"rate_limit_rest"`
+	URL             string        `json:"url"`
+	CustomShort     string        `json:"short"`
+	Expiry          time.Duration `json:"expiry"`
+	XRateRemaining  int           `json:"rate_limit"`
+	XRateLimitReset time.Duration `json:"rate_limit_rest"`
 }
 
 func ShortenUrl(c *fiber.Ctx) error {
@@ -65,6 +66,12 @@ func ShortenUrl(c *fiber.Ctx) error {
 
 	var id string
 
+	if body.CustomShort == "" {
+		id = string(uuid.New())
+	} else {
+		id = body.CustomShort
+	}
+
 	r := database.CreateClient(0)
 	defer r.Close()
 
@@ -83,5 +90,22 @@ func ShortenUrl(c *fiber.Ctx) error {
 		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "unable to connect to server"})
 	}
 
+	resp := response{
+		URL:             body.URL,
+		CustomShort:     "",
+		Expiry:          body.Expiry,
+		XRateRemaining:  10,
+		XRateLimitReset: 10,
+	}
+
 	r2.Decr(database.Ctx, c.IP())
+
+	val, _ = r.Get(database.Ctx, c.IP()).Result()
+	resp.XRateRemaining, _ = strconv.Atoi(val)
+
+	ttl, _ := r2.TTL(database.Ctx, c.IP()).Result()
+	resp.XRateLimitReset = ttl / time.Minute
+
+	resp.CustomShort = os.Getenv("DOMAIN") + "/" + id
+	return c.Status(fiber.StatusOK).JSON(resp)
 }
