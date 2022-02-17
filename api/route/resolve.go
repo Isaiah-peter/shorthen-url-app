@@ -18,7 +18,7 @@ func ResovleUrl(c *fiber.Ctx) error {
 	if err == redis.Nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "url does not exist"})
 	} else if err != nil {
-		return c.Status(fiber.StatusBadGateway).JSON(fiber.Map{"error": "error has occur"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "error has occur"})
 	}
 
 	rimr := database.CreateClient(1)

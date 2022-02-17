@@ -9,9 +9,10 @@ import (
 	"shorten-url-with-redis/database"
 	"shorten-url-with-redis/helper"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/internal/uuid"
+	"github.com/google/uuid"
 )
 
 type request struct {
@@ -42,7 +43,6 @@ func ShortenUrl(c *fiber.Ctx) error {
 	if err == redis.Nil {
 		_ = r2.Set(ctx, c.IP(), os.Getenv("API_QOUTA"), 30*60*time.Second)
 	} else {
-		value, _ := r2.Get(database.Ctx, c.IP()).Result()
 		valueInt, _ := strconv.Atoi(value)
 		if valueInt <= 0 {
 			limit, _ := r2.TTL(database.Ctx, c.IP()).Result()
@@ -52,7 +52,7 @@ func ShortenUrl(c *fiber.Ctx) error {
 	}
 
 	//check if the input sent is a URL
-	if !govalidator.isURL(body.URL) {
+	if !govalidator.IsURL(body.URL) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "this input is not an URL"})
 	}
 
@@ -67,7 +67,7 @@ func ShortenUrl(c *fiber.Ctx) error {
 	var id string
 
 	if body.CustomShort == "" {
-		id = string(uuid.New())
+		id = uuid.New().String()[:6]
 	} else {
 		id = body.CustomShort
 	}
